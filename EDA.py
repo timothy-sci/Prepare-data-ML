@@ -110,6 +110,10 @@ first_group = data[['make','drive-wheels','body-style','price']]
 result1 = first_group.groupby(['make','drive-wheels','body-style'], as_index=False).mean()
 print(result1)
 
+#------------------------------------------------------------------------------
+# Highlighting features/predictors useful for prediction with ML --------------
+#------------------------------------------------------------------------------
+
 # For builing ML algorithm, we can at this stage focus on the concepts:
 # correlation and causation.
 # We will look at the p-value, which defines the probability that the
