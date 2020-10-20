@@ -6,6 +6,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 
+from sklearn.model_selection import train_test_split
+
+from sklearn import metrics
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
+
+import warnings
+warnings.filterwarnings('ignore')
+
 # The objective is to investigate which features and how they influence purchase price
 
 cols = ['symboling', 'normalized-losses', 'make', 'fuel-type', 'aspiration', 'num-of-doors', 
@@ -183,4 +192,138 @@ print('p-value is {}'.format(p_value))
 #
 # Categorical variable drive-wheels also has an effect  on the price.
 #--------------------------------------------------------------------------
+
+print(data.info())
+
+drop_cols = ['symboling', 'normalized-losses', 'make', 'fuel-type', 'aspiration', 
+        'num-of-doors', 'body-style', 'drive-wheels', 'engine-location', 
+        'engine-type', 'fuel-system', 'num-cylinders','compression-ratio',
+        'peak-rpm', 'height']
+
+data = data.drop(drop_cols, axis=1)
+
+# Change data type
+
+data['curb-weight'] = data['curb-weight'].astype(float)
+data['engine-size'] = data['engine-size'].astype(float)
+data['horsepower'] = data['horsepower'].astype(float)
+data['city-mpg'] = data['city-mpg'].astype(float)
+data['highway-mpg'] = data['highway-mpg'].astype(float)
+
+X = data.drop(['price'],axis=1)
+y = data['price']
+print(X.dtypes)
+# Prepare data for the model
+
+train_X, test_X, train_y, test_y = train_test_split(X,y, test_size=0.2, random_state=0)
+
+# Feature scaling
+
+sc = StandardScaler()
+train_X = sc.fit_transform(train_X)
+test_X = sc.transform(test_X)
+
+#models = [ensemble.RandomForestRegressor(),
+#        ensemble.GradientBoostingRegressor()]
+
+print('~~~~~~~~~~ RandomForestRegressor ~~~~~~~~~~~~~~~~~~~~~~~')
+
+# Define Random Forest Regression model
+
+def RFR(train_X,train_y,test_X):
+    rfrregressor = RandomForestRegressor(n_estimators=1000,
+        min_samples_leaf=1)
+    rfrfit = rfrregressor.fit(train_X, train_y)
+    y_pred = rfrfit.predict(test_X)
+    model_score = rfrfit.score(test_X,test_y)
+
+    return y_pred
+
+y_predicted = RFR(train_X,train_y,test_X)
+
+# Evaluate the model
+
+mae = metrics.mean_absolute_error(test_y,y_predicted)
+mse = metrics.mean_squared_error(test_y,y_predicted)
+rmse = np.sqrt(metrics.mean_squared_error(test_y,y_predicted))
+
+print('Mean Absolute Error is {}'.format(mae))
+print('Mean Squared Error is {}'.format(mse))
+print('Root Mean Squared Error is {}'.format(rmse))
+
+
+pred = pd.DataFrame.from_dict({'predicted':y_predicted, 'true':test_y})
+pred['difference'] = pred.predicted - pred.true
+pred['ratio'] = 1.0 - (pred.true/pred.predicted)
+print(pred.sample(n=10).round(2))
+
+print('~~~~~~~~~~ GradientBoostingRegressor ~~~~~')
+
+# Define Random Forest Regression model
+
+def GBR(train_X,train_y,test_X):
+    gbrregressor = GradientBoostingRegressor(n_estimators=1000,
+        max_depth=5,
+        learning_rate=0.01)
+    gbrfit = gbrregressor.fit(train_X, train_y)
+    y_pred = gbrfit.predict(test_X)
+    model_score = gbrfit.score(test_X,test_y)
+
+    return y_pred
+
+y_predicted = GBR(train_X,train_y,test_X)
+
+# Evaluate the model
+
+mae = metrics.mean_absolute_error(test_y,y_predicted)
+mse = metrics.mean_squared_error(test_y,y_predicted)
+rmse = np.sqrt(metrics.mean_squared_error(test_y,y_predicted))
+
+print('Mean Absolute Error is {}'.format(mae))
+print('Mean Squared Error is {}'.format(mse))
+print('Root Mean Squared Error is {}'.format(rmse))
+
+
+pred = pd.DataFrame.from_dict({'predicted':y_predicted, 'true':test_y})
+pred['difference'] = pred.predicted - pred.true
+pred['ratio'] = 1.0 - (pred.true/pred.predicted)
+print(pred.sample(n=10).round(2))
+
+# Output from predictions
+'''
+~~~~~~~~~~ RandomForestRegressor ~~~~~~~~~~~~~~~~~~~~~~~
+Mean Absolute Error is 0.09436512410919157
+Mean Squared Error is 0.014917654505934057
+Root Mean Squared Error is 0.12213785042293014
+
+     predicted  true  difference  ratio
+166       9.29  9.16        0.13   0.01
+120       8.78  8.74        0.04   0.00
+158       8.98  8.97        0.00   0.00
+135       9.56  9.65       -0.09  -0.01
+165       9.24  9.14        0.10   0.01
+64        9.15  9.33       -0.17  -0.02
+191       9.54  9.50        0.05   0.00
+190       9.14  9.21       -0.07  -0.01
+138       8.90  8.54        0.36   0.04
+193       9.41  9.42       -0.01  -0.00
+
+~~~~~~~~~~ GradientBoostingRegressor ~~~~~
+Mean Absolute Error is 0.09943324131671528
+Mean Squared Error is 0.018526934798286727
+Root Mean Squared Error is 0.1361136833616912
+
+     predicted  true  difference  ratio
+120       8.76  8.74        0.02   0.00
+122       8.90  8.94       -0.04  -0.00
+75        9.74  9.71        0.03   0.00
+190       9.15  9.21       -0.05  -0.01
+5         9.49  9.63       -0.14  -0.02
+170       9.33  9.32        0.01   0.00
+7         9.82  9.85       -0.03  -0.00
+4         9.62  9.77       -0.15  -0.02
+185       8.99  9.01       -0.02  -0.00
+80        9.14  9.21       -0.06  -0.01
+'''
+
 
