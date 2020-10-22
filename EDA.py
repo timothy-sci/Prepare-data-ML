@@ -16,6 +16,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # The objective is to investigate which features and how they influence purchase price
+# carried over from the production side.
 
 cols = ['symboling', 'normalized-losses', 'make', 'fuel-type', 'aspiration', 'num-of-doors', 
         'body-style', 'drive-wheels', 'engine-location', 'wheel-base', 'length', 'width',
